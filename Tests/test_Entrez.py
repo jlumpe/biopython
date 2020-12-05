@@ -68,7 +68,7 @@ class TestURLConstruction(unittest.TestCase):
 
     def test_construct_cgi_epost1(self):
         cgi = "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/epost.fcgi"
-        variables = {"db": "nuccore", "id": "186972394,160418"}
+        variables = {"db": "nuccore", "id": [186972394, 160418]}
         post = True
 
         params = Entrez._construct_params(variables)
@@ -79,7 +79,7 @@ class TestURLConstruction(unittest.TestCase):
 
     def test_construct_cgi_epost2(self):
         cgi = "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/epost.fcgi"
-        variables = {"db": "nuccore", "id": ["160418", "160351"]}
+        variables = {"db": "nuccore", "id": [160418, 160351]}
         post = True
 
         params = Entrez._construct_params(variables)
@@ -94,7 +94,7 @@ class TestURLConstruction(unittest.TestCase):
             "cmd": "neighbor_history",
             "db": "nucleotide",
             "dbfrom": "protein",
-            "id": "22347800,48526535",
+            "id": [22347800, 48526535],
             "query_key": None,
             "webenv": None,
         }
@@ -115,7 +115,7 @@ class TestURLConstruction(unittest.TestCase):
         variables = {
             "db": "gene",
             "dbfrom": "protein",
-            "id": "15718680,157427902,119703751",
+            "id": [15718680, 157427902, 119703751],
         }
         post = False
 
@@ -134,7 +134,7 @@ class TestURLConstruction(unittest.TestCase):
         variables = {
             "db": "gene",
             "dbfrom": "protein",
-            "id": ["15718680", "157427902", "119703751"],
+            "id": [15718680, 157427902, 119703751],
         }
         post = False
 
@@ -151,7 +151,7 @@ class TestURLConstruction(unittest.TestCase):
         cgi = "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi"
         variables = {
             "db": "protein",
-            "id": "15718680,157427902,119703751",
+            "id": [15718680, 157427902, 119703751],
             "retmode": "xml",
         }
         post = False

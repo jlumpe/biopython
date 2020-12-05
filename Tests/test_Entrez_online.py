@@ -74,7 +74,7 @@ class EntrezOnlineCase(unittest.TestCase):
     def test_parse_from_url(self):
         """Test Entrez.parse from URL."""
         handle = Entrez.efetch(
-            db="protein", id="15718680, 157427902, 119703751", retmode="xml"
+            db="protein", id=[15718680, 157427902, 119703751], retmode="xml"
         )
         self.assertTrue(handle.url.startswith(URL_HEAD + "efetch.fcgi?"), handle.url)
         self.assertIn(URL_TOOL, handle.url)
@@ -92,7 +92,7 @@ class EntrezOnlineCase(unittest.TestCase):
         handle = Entrez.elink(
             db="nucleotide",
             dbfrom="protein",
-            id="22347800,48526535",
+            id=[22347800, 48526535],
             webenv=None,
             query_key=None,
             cmd="neighbor_history",
@@ -180,7 +180,7 @@ class EntrezOnlineCase(unittest.TestCase):
         """Test Entrez.elink with multiple ids, both comma separated and as list."""
         # Commas: Link from protein to gene
         handle = Entrez.elink(
-            db="gene", dbfrom="protein", id="15718680,157427902,119703751"
+            db="gene", dbfrom="protein", id=[15718680, 157427902, 119703751]
         )
         self.assertTrue(handle.url.startswith(URL_HEAD + "elink.fcgi"), handle.url)
         self.assertIn(URL_TOOL, handle.url)
