@@ -75,6 +75,7 @@ class TestURLConstruction(unittest.TestCase):
         options = Entrez._encode_options(ecitmatch=False, params=params)
         result_url = Entrez._construct_cgi(cgi, post=post, options=options)
         self.assertEqual(URL_HEAD + "epost.fcgi", result_url)
+        self.assertIn("id=186972394%2C160418", options)
 
     def test_construct_cgi_epost2(self):
         cgi = "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/epost.fcgi"
@@ -85,6 +86,7 @@ class TestURLConstruction(unittest.TestCase):
         options = Entrez._encode_options(ecitmatch=False, params=params)
         result_url = Entrez._construct_cgi(cgi, post=post, options=options)
         self.assertEqual(URL_HEAD + "epost.fcgi", result_url)
+        self.assertIn("id=160418%2C160351", options)
 
     def test_construct_cgi_elink1(self):
         cgi = "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/elink.fcgi"
@@ -142,9 +144,7 @@ class TestURLConstruction(unittest.TestCase):
         self.assertTrue(result_url.startswith(URL_HEAD + "elink.fcgi"), result_url)
         self.assertIn(URL_TOOL, result_url)
         self.assertIn(URL_EMAIL, result_url)
-        self.assertIn("id=15718680", result_url)
-        self.assertIn("id=157427902", result_url)
-        self.assertIn("id=119703751", result_url)
+        self.assertIn("id=15718680%2C157427902%2C119703751", result_url)
         self.assertIn(URL_API_KEY, result_url)
 
     def test_construct_cgi_efetch(self):
@@ -159,11 +159,38 @@ class TestURLConstruction(unittest.TestCase):
         params = Entrez._construct_params(variables)
         options = Entrez._encode_options(ecitmatch=False, params=params)
         result_url = Entrez._construct_cgi(cgi, post=post, options=options)
+
         self.assertTrue(result_url.startswith(URL_HEAD + "efetch.fcgi?"), result_url)
         self.assertIn(URL_TOOL, result_url)
         self.assertIn(URL_EMAIL, result_url)
         self.assertIn("id=15718680%2C157427902%2C119703751", result_url, result_url)
         self.assertIn(URL_API_KEY, result_url)
+
+    def test_format_ids(self):
+        ids = [
+            15718680,
+            157427902,
+            119703751,
+            "NP_001098858.1",  # Sequence databases accept accession #s as IDs
+        ]
+        ids_str = list(map(str, ids))
+        ids_formatted = "15718680,157427902,119703751,NP_001098858.1"
+
+        # Single integers or strings should just be converted to string
+        for id_ in ids:
+            self.assertEqual(Entrez._format_ids(id_), str(id_))
+
+        # List:
+        self.assertEqual(Entrez._format_ids(ids), ids_formatted)
+        self.assertEqual(Entrez._format_ids(ids_str), ids_formatted)
+        # Multiple IDs already joined by commas:
+        self.assertEqual(Entrez._format_ids(ids_formatted), ids_formatted)
+        # Other iterable types:
+        self.assertEqual(Entrez._format_ids(tuple(ids)), ids_formatted)
+        self.assertEqual(Entrez._format_ids(tuple(ids_str)), ids_formatted)
+        # As set, compare up to reordering
+        self.assertCountEqual(Entrez._format_ids(set(ids)).split(","), ids_str)
+        self.assertCountEqual(Entrez._format_ids(set(ids_str)).split(","), ids_str)
 
 
 class CustomDirectoryTest(unittest.TestCase):

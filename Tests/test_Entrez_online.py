@@ -197,9 +197,7 @@ class EntrezOnlineCase(unittest.TestCase):
         self.assertIn(URL_TOOL, handle.url)
         self.assertIn(URL_EMAIL, handle.url)
         self.assertIn(URL_API_KEY, handle.url)
-        self.assertIn("id=15718680", handle.url)
-        self.assertIn("id=157427902", handle.url)
-        self.assertIn("id=119703751", handle.url)
+        self.assertIn("id=15718680%2C157427902%2C119703751", handle.url)
         handle.close()
 
     def test_epost(self):

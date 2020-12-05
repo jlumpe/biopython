@@ -36,6 +36,13 @@ which has a ``.name`` attribute giving the filename, the handles from
 ``Bio.Entrez`` all have a ``.url`` attribute instead giving the URL
 used to connect to the NCBI Entrez API.
 
+Several functions in this module take an "id" parameter which corresponds to
+one or more database UIDs (or accession.version identifiers in the case of
+sequence databases such as "nuccore" or "protein"). The Python value of the
+"id" keyword passed to these functions may be either a single ID as a string or
+integer or multiple IDs as an iterable of strings/integers. You may also pass
+a single string containing multiple IDs delimited by commas.
+
 All the functions that send requests to the NCBI Entrez API will
 automatically respect the NCBI rate limit (of 3 requests per second
 without an API key, or 10 requests per second with an API key) and
@@ -132,6 +139,23 @@ tool = "biopython"
 api_key = None
 
 
+def _format_ids(ids):
+    """Convert one or more UIDs to a single comma-delimited string.
+
+    Input may be a single ID as an integer or string, an iterable of strings/ints,
+    or a string of IDs already separated by commas.
+    """
+    try:
+        # ids is a single integer or a string representing a single integer
+        return str(int(ids))
+    except TypeError:
+        # ids was not a string; try an iterable:
+        return ",".join(map(str, ids))
+    except ValueError:
+        # string with commas or string not representing an integer
+        return ",".join(map(str, (id.strip() for id in ids.split(","))))
+
+
 # XXX retmode?
 def epost(db, **keywds):
     """Post a file of identifiers for future use.
@@ -183,28 +207,7 @@ def efetch(db, **keywords):
     cgi = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi"
     variables = {"db": db}
     variables.update(keywords)
-    post = False
-    try:
-        ids = variables["id"]
-    except KeyError:
-        pass
-    else:
-        try:
-            # ids is a single integer or a string representing a single integer
-            ids = str(int(ids))
-        except TypeError:
-            # ids was not a string; try an iterable:
-            ids = ",".join(map(str, ids))
-        except ValueError:
-            # string with commas or string not representing an integer
-            ids = ",".join(map(str, (id.strip() for id in ids.split(","))))
-
-        variables["id"] = ids
-        if ids.count(",") >= 200:
-            # NCBI prefers an HTTP POST instead of an HTTP GET if there are
-            # more than about 200 IDs
-            post = True
-    return _open(cgi, variables, post=post)
+    return _open(cgi, variables)
 
 
 def esearch(db, term, **keywds):
@@ -596,6 +599,13 @@ def _open(cgi, params=None, post=None, ecitmatch=False):
     # By default, post is None. Set to a boolean to over-ride length choice:
     if post is None and len(options) > 1000:
         post = True
+    if post is None and "id" in params:
+        idcount = params["id"].count(",") + 1
+        # NCBI prefers an HTTP POST instead of an HTTP GET if there are
+        # more than about 200 IDs
+        if idcount >= 200:
+            post = True
+
     cgi = _construct_cgi(cgi, post, options)
 
     for i in range(max_tries):
@@ -646,10 +656,16 @@ def _construct_params(params):
     for key, value in list(params.items()):
         if value is None:
             del params[key]
+
+    # Convert "id" parameter to comma-joined string
+    if "id" in params:
+        params["id"] = _format_ids(params["id"])
+
     # Tell Entrez that we are using Biopython (or whatever the user has
     # specified explicitly in the parameters or by changing the default)
     if "tool" not in params:
         params["tool"] = tool
+
     # Tell Entrez who we are
     if "email" not in params:
         if email is not None:
@@ -669,8 +685,10 @@ a user at the email address provided before blocking access to the
 E-utilities.""",
                 UserWarning,
             )
+
     if api_key and "api_key" not in params:
         params["api_key"] = api_key
+
     return params
 
 
