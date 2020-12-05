@@ -108,7 +108,7 @@ Functions:
       which can return multiple records - such as efetch, esummary
       and elink. Typical usage is:
 
-          >>> handle = Entrez.esummary(db="pubmed", id="19304878,14630660", retmode="xml")
+          >>> handle = Entrez.esummary(db="pubmed", id=[19304878, 14630660], retmode="xml")
           >>> records = Entrez.parse(handle)
           >>> for record in records:
           ...     # each record is a Python dictionary or list.

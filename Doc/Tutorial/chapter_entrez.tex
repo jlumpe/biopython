@@ -273,7 +273,7 @@ Let's look at a simple example to see how EPost works -- uploading some PubMed i
 >>> from Bio import Entrez
 >>> Entrez.email = "A.N.Other@example.com"     # Always tell NCBI who you are
 >>> id_list = ["19304878", "18606172", "16403221", "16377612", "14871861", "14630660"]
->>> print(Entrez.epost("pubmed", id=",".join(id_list)).read())
+>>> print(Entrez.epost("pubmed", id=id_list).read())
 <?xml version="1.0"?>
 <!DOCTYPE ePostResult PUBLIC "-//NLM//DTD ePostResult, 11 May 2002//EN"
  "https://www.ncbi.nlm.nih.gov/entrez/query/DTD/ePost_020511.dtd">
@@ -290,7 +290,7 @@ You would extract these values for use with another Entrez call such as EFetch:
 >>> from Bio import Entrez
 >>> Entrez.email = "A.N.Other@example.com"     # Always tell NCBI who you are
 >>> id_list = ["19304878", "18606172", "16403221", "16377612", "14871861", "14630660"]
->>> search_results = Entrez.read(Entrez.epost("pubmed", id=",".join(id_list)))
+>>> search_results = Entrez.read(Entrez.epost("pubmed", id=id_list))
 >>> webenv = search_results["WebEnv"]
 >>> query_key = search_results["QueryKey"]
 \end{minted}
@@ -1206,9 +1206,9 @@ While you could download these records one by one, to reduce the load on NCBI's 
 However, in this situation you should ideally be using the history feature described later in Section~\ref{sec:entrez-webenv}.
 
 \begin{minted}{pycon}
->>> idlist = ",".join(record["IdList"][:5])
+>>> idlist = record["IdList"][:5]
 >>> print(idlist)
-KX265015.1, KX265014.1, KX265013.1, KX265012.1, KX265011.1]
+['KX265015.1', 'KX265014.1', 'KX265013.1', 'KX265012.1', 'KX265011.1']
 >>> handle = Entrez.efetch(db="nucleotide", id=idlist, retmode="xml")
 >>> records = Entrez.read(handle)
 >>> len(records)
@@ -1274,8 +1274,7 @@ Now we download the list of GenBank identifiers:
 Now we use these GIs to download the GenBank records - note that with older versions of Biopython you had to supply a comma separated list of GI numbers to Entrez, as of Biopython 1.59 you can pass a list and this is converted for you:
 
 \begin{minted}{pycon}
->>> gi_str = ",".join(gi_list)
->>> handle = Entrez.efetch(db="nuccore", id=gi_str, rettype="gb", retmode="text")
+>>> handle = Entrez.efetch(db="nuccore", id=gi_list, rettype="gb", retmode="text")
 \end{minted}
 
 If you want to look at the raw GenBank files, you can read from this handle and print out the result:
@@ -1526,8 +1525,7 @@ But first, taking the more straightforward approach of making a second
 (separate) call to ELink:
 
 \begin{minted}{pycon}
->>> results2 = Entrez.read(Entrez.elink(dbfrom="pmc", db="pubmed", LinkName="pmc_pubmed",
-...                                     id=",".join(pmc_ids)))
+>>> results2 = Entrez.read(Entrez.elink(dbfrom="pmc", db="pubmed", LinkName="pmc_pubmed", id=pmc_ids)
 >>> pubmed_ids = [link["Id"] for link in results2[0]["LinkSetDb"][0]["Link"]]
 >>> pubmed_ids
 ['19698094', '19450287', '19304878', ..., '15985178']
