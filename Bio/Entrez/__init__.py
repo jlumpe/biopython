@@ -139,23 +139,6 @@ tool = "biopython"
 api_key = None
 
 
-def _format_ids(ids):
-    """Convert one or more UIDs to a single comma-delimited string.
-
-    Input may be a single ID as an integer or string, an iterable of strings/ints,
-    or a string of IDs already separated by commas.
-    """
-    try:
-        # ids is a single integer or a string representing a single integer
-        return str(int(ids))
-    except TypeError:
-        # ids was not a string; try an iterable:
-        return ",".join(map(str, ids))
-    except ValueError:
-        # string with commas or string not representing an integer
-        return ",".join(map(str, (id.strip() for id in ids.split(","))))
-
-
 # XXX retmode?
 def epost(db, **keywds):
     """Post a file of identifiers for future use.
@@ -646,6 +629,25 @@ def _open(cgi, params=None, post=None, ecitmatch=False):
 
 
 _open.previous = 0
+
+
+def _format_ids(ids):
+    """Convert one or more UIDs to a single comma-delimited string.
+
+    Input may be a single ID as an integer or string, an iterable of strings/ints,
+    or a string of IDs already separated by commas.
+    """
+    if isinstance(ids, int):
+        # Single integer, just convert to str
+        return str(ids)
+
+    if isinstance(ids, str):
+        # String which represents one or more IDs joined by commas
+        # Remove any whitespace around commas if they are present
+        return ",".join(id.strip() for id in ids.split(","))
+
+    # Not a string or integer, assume iterable
+    return ",".join(map(str, ids))
 
 
 def _construct_params(params):
